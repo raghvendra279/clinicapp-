@@ -1,0 +1,174 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Doctor {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Patient {
+  id            String    @id @default(cuid())
+  firstName     String
+  lastName      String
+  dateOfBirth   DateTime
+  gender        Gender
+  phone         String
+  email         String?
+  address       String?
+  photoUrl      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  medicalRecord  MedicalRecord?
+  currentProblem CurrentProblem?
+  prescriptions  Prescription[]
+  sessions       Session[]
+  progressLogs   ProgressLog[]
+  treatment      Treatment?
+  followUp       FollowUp?
+  review         Review?
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+model MedicalRecord {
+  id                 String   @id @default(cuid())
+  patientId          String   @unique
+  patient            Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  pastHistory        String?
+  allergies          String?
+  existingConditions String?
+  bloodGroup         String?
+  emergencyContact   String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model CurrentProblem {
+  id                 String    @id @default(cuid())
+  patientId          String    @unique
+  patient            Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  chiefComplaint     String
+  onsetDate          DateTime?
+  severity           Int
+  description        String?
+  aggravatingFactors String?
+  relievingFactors   String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model Prescription {
+  id          String       @id @default(cuid())
+  patientId   String
+  patient     Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  dateIssued  DateTime     @default(now())
+  medications Medication[]
+  notes       String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Medication {
+  id             String       @id @default(cuid())
+  prescriptionId String
+  prescription   Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  name           String
+  dosage         String
+  frequency      String
+  duration       String
+  instructions   String?
+}
+
+model Session {
+  id             String      @id @default(cuid())
+  patientId      String
+  patient        Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  sessionDate    DateTime
+  sessionType    SessionType
+  durationMins   Int
+  therapistNotes String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+enum SessionType {
+  INITIAL_ASSESSMENT
+  EXERCISE_THERAPY
+  MANUAL_THERAPY
+  ELECTROTHERAPY
+  HYDROTHERAPY
+  TAPING
+  REVIEW
+  DISCHARGE
+}
+
+model ProgressLog {
+  id            String   @id @default(cuid())
+  patientId     String
+  patient       Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  logDate       DateTime @default(now())
+  painScale     Int
+  mobilityScore Int?
+  exercisesDone String?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Treatment {
+  id        String          @id @default(cuid())
+  patientId String          @unique
+  patient   Patient         @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  status    TreatmentStatus @default(ONGOING)
+  startDate DateTime
+  endDate   DateTime?
+  summary   String?
+  outcome   String?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+}
+
+enum TreatmentStatus {
+  ONGOING
+  COMPLETED
+  DISCONTINUED
+  ON_HOLD
+}
+
+model FollowUp {
+  id              String    @id @default(cuid())
+  patientId       String    @unique
+  patient         Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  nextVisitDate   DateTime?
+  homeExercises   String?
+  precautions     String?
+  dietaryAdvice   String?
+  additionalNotes String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  patientId   String   @unique
+  patient     Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  rating      Int
+  comments    String?
+  submittedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
