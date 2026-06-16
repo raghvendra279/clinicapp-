@@ -15,6 +15,6 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(({ classNa
     />
   )
 })
-textarea.displayName = 'Textarea'
+Textarea.displayName = 'Textarea'
 
 export { Textarea }
